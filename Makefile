@@ -1,4 +1,5 @@
 all:
+	$(CC) -O3 -march=native bulk.c common.c -DMAX_PREFETCH=8   -o bulk8.exe
 	$(CC) -O3 -march=native bulk.c common.c -DMAX_PREFETCH=16  -o bulk16.exe
 	$(CC) -O3 -march=native bulk.c common.c -DMAX_PREFETCH=32  -o bulk32.exe
 	$(CC) -O3 -march=native bulk.c common.c -DMAX_PREFETCH=64  -o bulk64.exe

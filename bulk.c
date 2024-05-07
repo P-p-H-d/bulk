@@ -57,13 +57,14 @@ inline void clflush(volatile void *p)
   asm volatile ("clflush (%0)" :: "r"(p));
 }
 
+#ifndef MAX_PREFETCH
+#define MAX_PREFETCH 128U
+#endif
+
 void
 bulk(unsigned long n)
 {
   unsigned long sum = 0;
-#ifndef MAX_PREFETCH
-#define MAX_PREFETCH 128U
-#endif
   size_t hash[MAX_PREFETCH];
   dict_pair_ct *data = dict->data;
   const size_t mask = dict->mask;	       
@@ -92,7 +93,64 @@ bulk(unsigned long n)
 	  { sum += data[p].value;	break;}
       } while (!oor_equal_p(data[p].key, M_D1CT_OA_EMPTY) );
     }
+    // FIXME: Needed? To measure.
     clflush(& data[p].key);
+  }
+  g_result = sum;
+}
+
+void bulk_get(unsigned n,
+              unsigned long val[n],
+              const unsigned long key[n],
+              unsigned long def)
+{
+  size_t hash[MAX_PREFETCH];
+  dict_pair_ct *data = dict->data;
+  const size_t mask = dict->mask;
+  M_ASSUME(n >= MAX_PREFETCH);
+  for(unsigned i = 0 ; i < MAX_PREFETCH; i++) {
+    hash[i] = M_HASH_INT64(key[i]) & mask;
+    __builtin_prefetch(&data[hash[i]], 0, 0);
+  }
+  
+  for (unsigned i = 0; i < n; i++) {
+    unsigned long k = key[i];
+    size_t p = hash[i % MAX_PREFETCH];
+    if (i < n-MAX_PREFETCH) {
+      hash[i % MAX_PREFETCH] = M_HASH_INT64(key[i+MAX_PREFETCH]) & mask;
+      __builtin_prefetch(&data[hash[i % MAX_PREFETCH]], 0, 0);
+    }
+    unsigned long ref = data[p].key;
+    if (M_LIKELY (ref == k))
+      val[i] = data[p].value;
+    else if (M_LIKELY (oor_equal_p (ref, M_D1CT_OA_EMPTY)) )
+      val[i] = def;
+    else {
+      size_t s = 1;
+      do {
+	p = (p + M_D1CT_OA_PROBING(s)) & mask;
+	if (data[p].key == k)
+	  { val[i] = data[p].value;
+            break;}
+      } while (!oor_equal_p(data[p].key, M_D1CT_OA_EMPTY) );
+    }
+    // FIXME: Needed? To measure.
+    clflush(& data[p].key);
+  }
+}
+
+#define BUF_N 1024
+
+void sum(unsigned long n)
+{
+  unsigned long sum = 0;
+  unsigned long val[BUF_N];
+  
+  for (size_t i = 0; i < n; i += BUF_N) {
+    unsigned num = M_MIN(BUF_N, n-i);
+    bulk_get(num, val, lockup+lockup_offset+i, 0);
+    for(unsigned j = 0; j < num; j++)
+      sum += val[j];
   }
   g_result = sum;
 }
@@ -109,8 +167,10 @@ int main(int argc, const char *argv[])
 
   for(int i = 0; i < 50; i ++) {
     lockup_offset += N/64;
-    if (printit != 0)
+    if (printit == 1)
       test_function("SEQU", N/64, no_bulk);
+    else if (printit == 2)
+      test_function("BULK+GET", N/64, sum);
     else
       test_function("BULK", N/64, bulk);
   }

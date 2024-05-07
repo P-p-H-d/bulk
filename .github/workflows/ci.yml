@@ -13,6 +13,8 @@ jobs:
       run:  cc -v
     - name: make
       run: make
+    - name: Run Bulk Prefetch 8
+      run: ./bulk8.exe 0
     - name: Run Bulk Prefetch 16
       run: ./bulk16.exe 0
     - name: Run Bulk Prefetch 32
@@ -23,6 +25,10 @@ jobs:
       run: ./bulk128.exe 0
     - name: Run Bulk Prefetch 256
       run: ./bulk256.exe 0
+    - name: Run Bulk Get Prefetch 16
+      run: ./bulk16.exe 2
+    - name: Run Bulk Prefetch 128
+      run: ./bulk128.exe 2
     - name: Run Normal 1
       run: ./bulk16.exe 1
     - name: Run Normal 2
