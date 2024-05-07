@@ -61,21 +61,23 @@ void
 bulk(unsigned long n)
 {
   unsigned long sum = 0;
-#define max_prefech 128U
-  size_t hash[max_prefech];
+#ifndef MAX_PREFETCH
+#define MAX_PREFETCH 128U
+#endif
+  size_t hash[MAX_PREFETCH];
   dict_pair_ct *data = dict->data;
   const size_t mask = dict->mask;	       
-  for(size_t i = 0 ; i < max_prefech; i++) {
+  for(size_t i = 0 ; i < MAX_PREFETCH; i++) {
     hash[i] = M_HASH_INT64(lockup[lockup_offset+i]) & mask;
     __builtin_prefetch(&data[hash[i]], 0, 0);
   }
   
   for (size_t i = 0; i < n; i++) {
     unsigned long key = lockup[lockup_offset+i];
-    size_t p = hash[i % max_prefech];
-    if (i < n-max_prefech) {
-      hash[i % max_prefech] = M_HASH_INT64(lockup[lockup_offset+i+max_prefech]) & mask;
-      __builtin_prefetch(&data[hash[i % max_prefech]], 0, 0);
+    size_t p = hash[i % MAX_PREFETCH];
+    if (i < n-MAX_PREFETCH) {
+      hash[i % MAX_PREFETCH] = M_HASH_INT64(lockup[lockup_offset+i+MAX_PREFETCH]) & mask;
+      __builtin_prefetch(&data[hash[i % MAX_PREFETCH]], 0, 0);
     }
     unsigned long ref = data[p].key;
     if (M_LIKELY (ref == key))
