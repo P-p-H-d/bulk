@@ -44,8 +44,10 @@ void test_int(uint32_t N, uint32_t n0, int32_t is_del, uint32_t x0, uint32_t n_c
 }
 #else
 
+// core i7 portable, best 16
+// core i5 : bulk as no real gain (2 % ?).
 #ifndef MAX_PREFETCH
-#define MAX_PREFETCH 64U
+#define MAX_PREFETCH 16U
 #endif
 
 void clflush(volatile void *p)
@@ -118,7 +120,8 @@ void bulk_add(intmap_t dict, unsigned n, uint32_t val[n], uint32_t key[n], uint3
     } 
   next:
     // FIXME: Needed? To measure.
-    clflush(& data[p].key);
+    //clflush(& data[p].key);
+    (void)0;
   }
 }
 
@@ -207,6 +210,7 @@ static inline void update2(intmap_t h, uint32_t key, uint32_t *oldval, uint32_t 
 
 void test_int(uint32_t N, uint32_t n0, int32_t is_del, uint32_t x0, uint32_t n_cp, udb_checkpoint_t *cp)
 {
+  printf("Prefetch=%d\n", MAX_PREFETCH);
   uint32_t step = (N - n0) / (n_cp - 1);
   uint32_t i, n, j;
   uint64_t z = 0, x = x0;

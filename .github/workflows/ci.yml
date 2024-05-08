@@ -21,18 +21,14 @@ jobs:
       run: ./bulk32.exe 0
     - name: Run Bulk Prefetch 64
       run: ./bulk64.exe 0
-    - name: Run Bulk Prefetch 128
-      run: ./bulk128.exe 0
-    - name: Run Bulk Prefetch 256
-      run: ./bulk256.exe 0
+    - name: Run Bulk Get Prefetch 8
+      run: ./bulk8.exe 2
     - name: Run Bulk Get Prefetch 16
       run: ./bulk16.exe 2
-    - name: Run Bulk Prefetch 128
-      run: ./bulk128.exe 2
     - name: Run Normal 1
-      run: ./bulk16.exe 1
+      run: ./bulk8.exe 1
     - name: Run Normal 2
-      run: ./bulk128.exe 1
+      run: ./bulk16.exe 1
     - name: Build udb3
       working-directory: ./udb3
       run: make
@@ -42,15 +38,27 @@ jobs:
     - name: udb3 bulk insert (add)
       working-directory: ./udb3
       run: ./run-test.new
-    - name: udb3 bulk insert (update)
+    - name: udb3 bulk insert (update) + prefetch 8
       working-directory: ./udb3
-      run: ./run-test.up
+      run: ./run-test.up8
+    - name: udb3 bulk insert (update) + prefetch 16
+      working-directory: ./udb3
+      run: ./run-test.up16
+    - name: udb3 bulk insert (update) + prefetch 32
+      working-directory: ./udb3
+      run: ./run-test.up32
     - name: udb3 normal delete
       working-directory: ./udb3
       run: ./run-test.old -d
-    - name: udb3 bulk delte
+    - name: udb3 bulk delete (prefetch 8)
       working-directory: ./udb3
-      run: ./run-test.up -d
+      run: ./run-test.up8 -d
+    - name: udb3 bulk delete (prefetch 16)
+      working-directory: ./udb3
+      run: ./run-test.up16 -d
+    - name: udb3 bulk delete (prefetch 32)
+      working-directory: ./udb3
+      run: ./run-test.up32 -d
       
       
  
