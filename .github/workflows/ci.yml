@@ -36,12 +36,21 @@ jobs:
     - name: Build udb3
       working-directory: ./udb3
       run: make
-    - name: udb3 normal
+    - name: udb3 normal insert
       working-directory: ./udb3
       run: ./run-test.old
-    - name: udb3 bulk
+    - name: udb3 bulk insert (add)
       working-directory: ./udb3
       run: ./run-test.new
+    - name: udb3 bulk insert (update)
+      working-directory: ./udb3
+      run: ./run-test.up
+    - name: udb3 normal delete
+      working-directory: ./udb3
+      run: ./run-test.old -d
+    - name: udb3 bulk delte
+      working-directory: ./udb3
+      run: ./run-test.up -d
       
       
  
