@@ -120,22 +120,19 @@ void bulk_get(unsigned n,
       hash[i % MAX_PREFETCH] = M_HASH_INT64(key[i+MAX_PREFETCH]) & mask;
       __builtin_prefetch(&data[hash[i % MAX_PREFETCH]], 0, 0);
     }
-    unsigned long ref = data[p].key;
-    if (M_LIKELY (ref == k))
-      val[i] = data[p].value;
-    else if (M_LIKELY (oor_equal_p (ref, M_D1CT_OA_EMPTY)) )
-      val[i] = def;
-    else {
-      size_t s = 1;
-      do {
-	p = (p + M_D1CT_OA_PROBING(s)) & mask;
-	if (data[p].key == k)
-	  { val[i] = data[p].value;
-            break;}
-      } while (!oor_equal_p(data[p].key, M_D1CT_OA_EMPTY) );
+    size_t s = 1;
+    while (true) {
+      if (M_LIKELY (data[p].key == k)) {
+        val[i] = data[p].value; // INIT_SET or SET?
+        break;
+      }
+      if (M_LIKELY (oor_equal_p (data[p].key, M_D1CT_OA_EMPTY)) ) {
+        val[i] = def;
+        break;
+      }
+      p = (p + M_D1CT_OA_PROBING(s)) & mask;
     }
-    // FIXME: Needed? To measure.
-    clflush(& data[p].key);
+    //    clflush(& data[p].key);
   }
 }
 
