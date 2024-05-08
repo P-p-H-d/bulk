@@ -33,4 +33,15 @@ jobs:
       run: ./bulk16.exe 1
     - name: Run Normal 2
       run: ./bulk128.exe 1
+    - name: Build udb3
+      working-directory: ./udb3
+      run: make
+    - name: udb3 normal
+      working-directory: ./udb3
+      run: ./run-test.old
+    - name: udb3 bulk
+      working-directory: ./udb3
+      run: ./run-test.new
+      
+      
  

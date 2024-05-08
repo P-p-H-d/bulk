@@ -155,6 +155,21 @@ void sum(unsigned long n)
   g_result = sum;
 }
 
+/*
+  z += ++*safe_get(key)
+  atomic_fetch_add()
+  add, sub, or, and, xor, exchange(=swap)
+  bulk_[add|or|and|xor|swap](unsigned n, 
+  value_type value[n],
+  key_type key[n],
+  value_type def);
+==>
+   val[i] = old(p->value)
+   p->value OP= old(val[i])
+==>
+  bulk_add(n, value, key, operand[], 1)
+ */
+
 int main(int argc, const char *argv[])
 {
   int printit = argc == 2 ? atoi(argv[1]) : 0;
